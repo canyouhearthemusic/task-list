@@ -37,9 +37,9 @@ func New() *chi.Mux {
 
 	hostname := os.Getenv("HOSTNAME")
 	if hostname == "" {
-		hostname = "localhost:8080"
+		hostname = "http://localhost:8080"
 	}
-	var swagUrl string = fmt.Sprintf("http://%s/swagger/doc.json", hostname)
+	var swagUrl string = fmt.Sprintf("%s/swagger/doc.json", hostname)
 
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(swagUrl),
