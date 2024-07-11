@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"fmt"
+	"os"
+
 	_ "github.com/canyouhearthemusic/todo-list/docs"
 	"github.com/canyouhearthemusic/todo-list/internal/handlers"
 	"github.com/go-chi/chi/v5"
@@ -32,8 +35,14 @@ func New() *chi.Mux {
 
 	loadRoutes(r)
 
+	hostname := os.Getenv("HOSTNAME")
+	if hostname == "" {
+		hostname = "localhost:8080"
+	}
+	var swagUrl string = fmt.Sprintf("http://%s/swagger/doc.json", hostname)
+
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		httpSwagger.URL(swagUrl),
 	))
 
 	return r

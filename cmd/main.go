@@ -16,8 +16,13 @@ import (
 func main() {
 	var wg sync.WaitGroup
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + port,
 		Handler: routes.New(),
 	}
 
@@ -25,9 +30,9 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		log.Printf("Starting Application on :%d port", 8080)
+		log.Printf("Starting Application on :%v port", port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Could not listen on :8080: %v\n", err)
+			log.Fatalf("Could not listen on :%v: %v\n", port, err)
 		}
 	}()
 
