@@ -14,6 +14,7 @@ type TaskRepo interface {
 	Post(ctx context.Context, task *models.Task) error
 	Put(ctx context.Context, id string, task *models.Task) error
 	Delete(ctx context.Context, id string) error
+	MarkAsDone(ctx context.Context, id string) error
 }
 
 type SyncMapTaskRepo struct {
@@ -70,6 +71,8 @@ func (repo *SyncMapTaskRepo) Post(ctx context.Context, task *models.Task) error 
 		return errors.New("task with the same title already exists")
 	}
 
+	task.Status = "active"
+
 	repo.db.Store(task.ID, task)
 
 	return nil
@@ -84,6 +87,17 @@ func (repo *SyncMapTaskRepo) Put(ctx context.Context, id string, updatedTask *mo
 	updatedTask.ID = oldTask.ID
 
 	repo.db.Store(id, updatedTask)
+
+	return nil
+}
+
+func (repo *SyncMapTaskRepo) MarkAsDone(ctx context.Context, id string) error {
+	task, err := repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	task.Status = "done"
 
 	return nil
 }

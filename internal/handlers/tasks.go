@@ -17,7 +17,15 @@ var (
 
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	tasks, err := service.GetAllTasks(ctx)
+	status := r.URL.Query().Get("status")
+	switch status {
+		case "", "active":
+			status = "active"
+		case "done":
+			status = "done"
+	}
+
+	tasks, err := service.GetAllTasks(ctx, status)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -97,6 +105,18 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func DoneTask(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := chi.URLParam(r, "id")
+
+	if err := service.DoneTask(ctx, id); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func respondWithJSON(w http.ResponseWriter, status int, payload any) {

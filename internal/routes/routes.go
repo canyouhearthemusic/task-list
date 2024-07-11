@@ -26,6 +26,7 @@ func loadRoutes(r *chi.Mux) {
 			tasks.Post("/", handlers.PostTask)
 			tasks.Get("/{id}", handlers.GetTask)
 			tasks.Put("/{id}", handlers.PutTask)
+			tasks.Put("/{id}/done", handlers.DoneTask)
 			tasks.Delete("/{id}", handlers.DeleteTask)
 		})
 	})
