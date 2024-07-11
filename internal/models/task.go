@@ -12,6 +12,11 @@ type Task struct {
 	Status   string `json:"status"`
 }
 
+type TaskRequest struct {
+	Title    string `json:"title"`
+	ActiveAt string `json:"activeAt"`
+}
+
 func (t *Task) Validate() error {
 	if t.ID != "" {
 		return errors.New("id mustn't present in request")

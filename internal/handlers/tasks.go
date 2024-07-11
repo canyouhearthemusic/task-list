@@ -15,14 +15,24 @@ var (
 	service *services.TaskService = services.New(repositories.NewSyncMapTaskRepo())
 )
 
+// GetAllTasks godoc
+// @Summary Get all tasks
+// @Description Get all tasks by status
+// @Tags tasks
+// @Accept  json
+// @Produce  json
+// @Param   status  query  string  false  "Status Filter"  Enum(active,done)
+// @Success 200 {array} models.Task
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/tasks [get]
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	status := r.URL.Query().Get("status")
 	switch status {
-		case "", "active":
-			status = "active"
-		case "done":
-			status = "done"
+	case "", "active":
+		status = "active"
+	case "done":
+		status = "done"
 	}
 
 	tasks, err := service.GetAllTasks(ctx, status)
@@ -34,6 +44,16 @@ func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, tasks)
 }
 
+// GetTask godoc
+// @Summary Get task by ID
+// @Description Get a task by ID
+// @Tags tasks
+// @Accept  json
+// @Produce  json
+// @Param   id   path  string  true  "Task ID"
+// @Success 200 {object} models.Task
+// @Failure 404 {string} string "Not Found"
+// @Router /api/tasks/{id} [get]
 func GetTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
@@ -47,6 +67,17 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, task)
 }
 
+// PostTask godoc
+// @Summary Create a new task
+// @Description Create a new task
+// @Tags tasks
+// @Accept  json
+// @Produce  json
+// @Param   task  body  models.TaskRequest  true  "Task"
+// @Success 201 {object} models.Task
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/tasks [post]
 func PostTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var task models.Task
@@ -71,6 +102,18 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, task)
 }
 
+// PutTask godoc
+// @Summary Update a task
+// @Description Update a task by ID
+// @Tags tasks
+// @Accept  json
+// @Produce  json
+// @Param   id    path  string       true  "Task ID"
+// @Param   task  body  models.TaskRequest  true  "Task"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Router /api/tasks/{id} [put]
 func PutTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
@@ -95,6 +138,16 @@ func PutTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// DeleteTask godoc
+// @Summary Delete a task
+// @Description Delete a task by ID
+// @Tags tasks
+// @Accept  json
+// @Produce  json
+// @Param   id  path  string  true  "Task ID"
+// @Success 204 {string} string "No Content"
+// @Failure 404 {string} string "Not Found"
+// @Router /api/tasks/{id} [delete]
 func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
@@ -107,6 +160,15 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// DoneTask godoc
+// @Summary Mark task as done
+// @Description Update a task status by ID
+// @Tags tasks
+// @Param   id    path  string       true  "Task ID"
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Router /api/tasks/{id}/done [put]
 func DoneTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
