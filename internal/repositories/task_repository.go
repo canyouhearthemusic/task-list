@@ -67,7 +67,7 @@ func (repo *SyncMapTaskRepo) Post(ctx context.Context, task *models.Task) error 
 	})
 
 	if found {
-		return errors.New("Task with the same title already exists")
+		return errors.New("task with the same title already exists")
 	}
 
 	repo.db.Store(task.ID, task)
@@ -76,10 +76,12 @@ func (repo *SyncMapTaskRepo) Post(ctx context.Context, task *models.Task) error 
 }
 
 func (repo *SyncMapTaskRepo) Put(ctx context.Context, id string, updatedTask *models.Task) error {
-	_, err := repo.GetByID(ctx, id)
+	oldTask, err := repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
+
+	updatedTask.ID = oldTask.ID
 
 	repo.db.Store(id, updatedTask)
 

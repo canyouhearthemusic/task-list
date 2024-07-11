@@ -6,42 +6,37 @@ import (
 
 	"github.com/canyouhearthemusic/todo-list/internal/models"
 	"github.com/canyouhearthemusic/todo-list/internal/repositories"
+	"github.com/canyouhearthemusic/todo-list/internal/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 var (
-	repo repositories.TaskRepo = repositories.NewSyncMapTaskRepo()
+	service *services.TaskService = services.New(repositories.NewSyncMapTaskRepo())
 )
 
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	tasks, err := repo.All(ctx)
+	tasks, err := service.GetAllTasks(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(tasks); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	respondWithJSON(w, http.StatusOK, tasks)
 }
 
 func GetTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
 
-	task, err := repo.GetByID(ctx, id)
+	task, err := service.GetTask(ctx, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(task); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	respondWithJSON(w, http.StatusOK, task)
 }
 
 func PostTask(w http.ResponseWriter, r *http.Request) {
@@ -55,21 +50,17 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 
 	if err := task.Validate(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	task.ID = uuid.New().String()
 
-	if err := repo.Post(ctx, &task); err != nil {
+	if err := service.PostTask(ctx, &task); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-
-	if err := json.NewEncoder(w).Encode(task); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	respondWithJSON(w, http.StatusCreated, task)
 }
 
 func PutTask(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +74,12 @@ func PutTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := repo.Put(ctx, id, &updatedTask); err != nil {
+	if err := updatedTask.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := service.PutTask(ctx, id, &updatedTask); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -95,10 +91,18 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
 
-	if err := repo.Delete(ctx, id); err != nil {
+	if err := service.DeleteTask(ctx, id); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func respondWithJSON(w http.ResponseWriter, status int, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
