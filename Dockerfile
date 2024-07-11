@@ -9,13 +9,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o proxy-server
+RUN go build -o todo-service cmd/main.go
 
 # Run Stage
 FROM alpine as runner
 
 RUN apk --no-cache add ca-certificates
 
-COPY --from=builder /app/proxy-server ./app
+COPY --from=builder /app/todo-service ./app
 
 ENTRYPOINT ["./app"]
